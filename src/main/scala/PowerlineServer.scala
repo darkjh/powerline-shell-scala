@@ -1,22 +1,27 @@
-import java.io.{IOException, DataInputStream, ObjectInputStream, DataOutputStream}
+import java.io.{PrintStream, IOException}
 import java.net.{SocketException, ServerSocket}
+import scala.io.BufferedSource
 
 /**
  *
  */
 object PowerlineServer extends App {
   try {
-    val socket = new ServerSocket(18888).accept()
-    val out = new DataOutputStream(socket.getOutputStream)
-    val in = new ObjectInputStream(
-      new DataInputStream(socket.getInputStream))
-
+    val server = new ServerSocket(18888)
     while (true) {
-      val input = in.readObject
-      out.writeChars("Hello Man: "+input.asInstanceOf[String])
+      val socket = server.accept()
+      val in = new BufferedSource(socket.getInputStream).getLines()
+      val out = new PrintStream(socket.getOutputStream)
+
+      while (in.hasNext) {
+        val msg = in.next()
+        out.print(msg)
+        // out.print('\0')
+        println("Received: "+msg)
+      }
+      out.close()
+      socket.close()
     }
-    out.close()
-    socket.close()
   } catch {
     case e: SocketException =>
     case e: IOException =>
