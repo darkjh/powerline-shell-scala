@@ -12,51 +12,66 @@ object PowerlineServer extends App {
     val PATH_FG = 250  // light grey
     val CWD_FG = 254  // nearly-white grey
     val SEPARATOR_FG = 244
-    
+
     val REPO_CLEAN_BG = 148  // a light green color
     val REPO_CLEAN_FG = 0  // black
     val REPO_DIRTY_BG = 161  // pink/red
     val REPO_DIRTY_FG = 15  // white
-    
+
     val CMD_PASSED_BG = 236
     val CMD_PASSED_FG = 15
     val CMD_FAILED_BG = 161
     val CMD_FAILED_FG = 15
-    
+
     val SVN_CHANGES_BG = 148
     val SVN_CHANGES_FG = 22  // dark green
-    
+
     val VIRTUAL_ENV_BG = 35  // a mid-tone green
-    val VIRTUAL_ENV_FG = 22    
+    val VIRTUAL_ENV_FG = 22
   }
 
-  // TODO refactor in scala style
+  // TODO 2 classes? Segment, LastSegment ?
   case class Segment(content: String,
-                     fg: Int,
-                     bg: Int,
+                     contentFg: Int,
+                     contentBg: Int,
                      sep: String,
-                     var fgSepColor: Int) {
-    if (fgSepColor == null)
-      fgSepColor = bg
+                     sepFg: Option[Int]) {
+    val sepFgColor = sepFg match {
+      case Some(c) => c
+      case None => contentBg
+    }
 
-    def draw(next: Segment) = {
-      val bgSepColorStr = next match {
-        case null => RESET  // reset bg color if it's the last segment
-        case _ => bgcolor(next.bg)
+    def draw(next: Option[Segment]) = {
+      val sepBgColorStr = next match {
+        // reset bg color if it's the last segment
+        case None => RESET
+        // separator's bg should be consistent with next segment's bg
+        case Some(s) => bgcolor(s.contentBg)
       }
 
-      List(fgcolor(fg), bgcolor(bg), content,
-        bgSepColorStr, fgcolor(fgSepColor), sep) mkString ""
+      val sepToUse = next match {
+        // last segment
+        case None => filledSeparator
+        // segments in the middle
+        case Some(_) => sep
+      }
+
+      List(fgcolor(contentFg), bgcolor(contentBg), content,
+        sepBgColorStr, fgcolor(sepFgColor), sepToUse) mkString ""
     }
   }
 
-  val segments: List[Segment] = List()
-
-  val separator = "\u2B80"
+  // Separators
+  val filledSeparator = "\u2B80"
   val thinSeparator = "\u2B81"
 
+  // Bash prompt color escape string
   val LSQESCRSQ = "\\[\\e%s\\]"
   val RESET = LSQESCRSQ format "[0m"
+  val ROOT_INDICATOR = " \\$ "
+
+  // Home dir
+  val HOME = System.getenv("HOME")
 
 
   def color(prefix: String, code: Int) =
@@ -68,31 +83,45 @@ object PowerlineServer extends App {
   def bgcolor(code: Int) =
     color("48", code)
 
-  def draw(segments: List[Segment]) = {
+  def draw(segments: Seq[Segment]) = {
     val shifted = segments.tail
     val output = (for {
       (curr, next) <- segments zip shifted
-    } yield curr.draw(next)) mkString ""
+    } yield curr.draw(Some(next))) mkString ""
 
     val sb = new StringBuilder()
     output foreach {
       sb.append(_)
     }
-    sb.append(segments.last.draw(null))
+    sb.append(segments.last.draw(None))
+    sb.append(RESET)
   }
-
 
   // TODO maxDepth
   def genCwdSegments(msg: String) = {
-    val cwd = msg.substring(1)  // remove "/"
-    val dirs = cwd.split("/").toList
+    val cwd =
+      if (msg.startsWith(HOME))
+        msg.replaceFirst(HOME, "~")
+      else
+        msg.substring(1)  // remove leading "/"
+    val dirs = cwd.split("/").toIndexedSeq
 
-    dirs map {
+    val (firsts, last) = (dirs.slice(0, dirs.length-1), dirs.last)
+
+    val segments = firsts map {
       dir: String =>
         Segment(" %s " format dir, Color.PATH_FG,
-          Color.PATH_BG, thinSeparator, Color.SEPARATOR_FG)
+          Color.PATH_BG, thinSeparator, Some(Color.SEPARATOR_FG))
     }
+    segments :+ Segment(" %s " format last, Color.PATH_FG,
+          Color.PATH_BG, filledSeparator, None)
   }
+
+  def genRootIndicator() = {
+    IndexedSeq(Segment(ROOT_INDICATOR, Color.CMD_PASSED_FG,
+      Color.CMD_PASSED_BG, thinSeparator, None))
+  }
+
 
   // Main
   try {
@@ -104,7 +133,9 @@ object PowerlineServer extends App {
 
       val msg = in.readLine()
       println("Received: "+msg)
-      out.print(draw(genCwdSegments(msg)))
+      val output = draw(genCwdSegments(msg) ++ genRootIndicator())
+      // println(output)
+      out.print(output)
 
       out.close()
       socket.close()
