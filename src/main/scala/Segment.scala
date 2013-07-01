@@ -35,6 +35,6 @@ case class LastSegment(content: String,
       case None => RESET
     }
     List(fgcolor(contentFg), bgcolor(contentBg), content,
-      fgcolor(contentBg), sepBgColorStr, filledSeparator) mkString ""
+      sepBgColorStr, fgcolor(contentBg), filledSeparator) mkString ""
   }
 }
