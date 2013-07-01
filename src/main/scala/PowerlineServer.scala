@@ -30,37 +30,6 @@ object PowerlineServer extends App {
     val VIRTUAL_ENV_FG = 22
   }
 
-  // TODO 2 classes? Segment, LastSegment ?
-//  case class Segment(content: String,
-//                     contentFg: Int,
-//                     contentBg: Int,
-//                     sep: String,
-//                     sepFg: Option[Int]) {
-//    val sepFgColor = sepFg match {
-//      case Some(c) => c
-//      case None => contentBg
-//    }
-//
-//    def draw(next: Option[Segment]) = {
-//      val sepBgColorStr = next match {
-//        // reset bg color if it's the last segment
-//        case None => RESET
-//        // separator's bg should be consistent with next segment's bg
-//        case Some(s) => bgcolor(s.contentBg)
-//      }
-//
-//      val sepToUse = next match {
-//        // last segment
-//        case None => filledSeparator
-//        // segments in the middle
-//        case Some(_) => sep
-//      }
-//
-//      List(fgcolor(contentFg), bgcolor(contentBg), content,
-//        sepBgColorStr, fgcolor(sepFgColor), sepToUse) mkString ""
-//    }
-//  }
-
   // Separators
   val filledSeparator = "\u2B80"
   val thinSeparator = "\u2B81"
