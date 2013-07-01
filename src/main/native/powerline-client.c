@@ -26,9 +26,10 @@ void error(char *msg) {
 
 char* prepare_msg(const char *env_var) {
   int len = strlen(env_var);
-  char* msg = (char*)malloc((len+1)*sizeof(char));
+  char* msg = (char*)malloc((len+2)*sizeof(char));
   strcpy(msg, env_var);
-  msg[len] = '\n';  // add \n since server side use readLine() method
+  msg[len] = '\n';    // add '\n' since server side use readLine()
+  msg[len+1] = '\0';  // now terminate the string with '\0'
 
   return msg;
 }
@@ -67,11 +68,9 @@ int main(int argc, char **argv) {
   char* ret_msg = prepare_msg(argv[1]);
 
   /* write: send the messages to the server */
-  n = write(sockfd, pwd_msg, strlen(pwd_msg));
-  if (n < 0)
+  if (write(sockfd, pwd_msg, strlen(pwd_msg)) < 0)
     error("ERROR writing to powerline server");
-  n = write(sockfd, ret_msg, strlen(ret_msg));
-  if (n < 0)
+  if (write(sockfd, ret_msg, strlen(ret_msg)) < 0)
     error("ERROR writing to powerline server");
 
   free(pwd_msg);
@@ -79,8 +78,7 @@ int main(int argc, char **argv) {
 
   /* read: print the server's reply */
   bzero(buf, BUFSIZE);
-  n = read(sockfd, buf, BUFSIZE);
-  if (n < 0)
+  if (read(sockfd, buf, BUFSIZE) < 0)
     error("ERROR reading from powerline server");
   printf("%s", buf);
   close(sockfd);
