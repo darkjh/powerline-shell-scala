@@ -117,9 +117,13 @@ object PowerlineServer extends App {
           Color.PATH_BG)
   }
 
-  def genRootIndicator() = {
-    IndexedSeq(LastSegment(ROOT_INDICATOR, Color.CMD_PASSED_FG,
-      Color.CMD_PASSED_BG))
+  def genRootIndicator(retCode: Int) = {
+    val (fg, bg) = if (retCode != 0) {
+      (Color.CMD_FAILED_FG, Color.CMD_FAILED_BG)
+    } else {
+      (Color.CMD_PASSED_FG, Color.CMD_PASSED_BG)
+    }
+    IndexedSeq(LastSegment(ROOT_INDICATOR, fg, bg))
   }
 
   // Main
@@ -130,12 +134,20 @@ object PowerlineServer extends App {
       val in = new BufferedReader(new InputStreamReader(socket.getInputStream))
       val out = new PrintStream(socket.getOutputStream)
 
-      val msg = in.readLine()
-      println("Received: "+msg)
-      val output = draw(genCwdSegments(msg) ++ genRootIndicator())
-      // println(output)
+      val pwd = in.readLine()
+      val ret = in.readLine()
+
+      println("Pwd: "+pwd + " Ret Code: " + ret)
+      val retCode = try {
+        ret.toInt
+      } catch {
+        case e: Exception => 0
+      }
+
+      val output = draw(genCwdSegments(pwd) ++ genRootIndicator(retCode))
       out.print(output)
 
+      in.close()
       out.close()
       socket.close()
     }

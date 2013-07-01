@@ -24,6 +24,15 @@ void error(char *msg) {
   exit(0);
 }
 
+char* prepare_msg(const char *env_var) {
+  int len = strlen(env_var);
+  char* msg = (char*)malloc((len+1)*sizeof(char));
+  strcpy(msg, env_var);
+  msg[len] = '\n';  // add \n since server side use readLine() method
+
+  return msg;
+}
+
 int main(int argc, char **argv) {
   int sockfd, portno, n;
   struct sockaddr_in serveraddr;
@@ -53,24 +62,26 @@ int main(int argc, char **argv) {
   if (connect(sockfd, &serveraddr, sizeof(serveraddr)) < 0)
     error("ERROR connecting");
 
-  /* get current pwd */
-  char* pwd = getenv(PWD);
-  int len = strlen(pwd);
-  char* msg = (char*)malloc((len+1)*sizeof(char));
-  strcpy(msg, pwd);
-  msg[len] = '\n';
+  /* get current pwd and return code */
+  char* pwd_msg = prepare_msg(getenv(PWD));
+  char* ret_msg = prepare_msg(argv[1]);
 
-  /* write: send the message line to the server */
-  n = write(sockfd, msg, strlen(msg));
-  free(msg);
+  /* write: send the messages to the server */
+  n = write(sockfd, pwd_msg, strlen(pwd_msg));
   if (n < 0)
-    error("ERROR writing to socket");
+    error("ERROR writing to powerline server");
+  n = write(sockfd, ret_msg, strlen(ret_msg));
+  if (n < 0)
+    error("ERROR writing to powerline server");
+
+  free(pwd_msg);
+  free(ret_msg);
 
   /* read: print the server's reply */
   bzero(buf, BUFSIZE);
   n = read(sockfd, buf, BUFSIZE);
   if (n < 0)
-    error("ERROR reading from socket");
+    error("ERROR reading from powerline server");
   printf("%s", buf);
   close(sockfd);
   return 0;
