@@ -31,35 +31,35 @@ object PowerlineServer extends App {
   }
 
   // TODO 2 classes? Segment, LastSegment ?
-  case class Segment(content: String,
-                     contentFg: Int,
-                     contentBg: Int,
-                     sep: String,
-                     sepFg: Option[Int]) {
-    val sepFgColor = sepFg match {
-      case Some(c) => c
-      case None => contentBg
-    }
-
-    def draw(next: Option[Segment]) = {
-      val sepBgColorStr = next match {
-        // reset bg color if it's the last segment
-        case None => RESET
-        // separator's bg should be consistent with next segment's bg
-        case Some(s) => bgcolor(s.contentBg)
-      }
-
-      val sepToUse = next match {
-        // last segment
-        case None => filledSeparator
-        // segments in the middle
-        case Some(_) => sep
-      }
-
-      List(fgcolor(contentFg), bgcolor(contentBg), content,
-        sepBgColorStr, fgcolor(sepFgColor), sepToUse) mkString ""
-    }
-  }
+//  case class Segment(content: String,
+//                     contentFg: Int,
+//                     contentBg: Int,
+//                     sep: String,
+//                     sepFg: Option[Int]) {
+//    val sepFgColor = sepFg match {
+//      case Some(c) => c
+//      case None => contentBg
+//    }
+//
+//    def draw(next: Option[Segment]) = {
+//      val sepBgColorStr = next match {
+//        // reset bg color if it's the last segment
+//        case None => RESET
+//        // separator's bg should be consistent with next segment's bg
+//        case Some(s) => bgcolor(s.contentBg)
+//      }
+//
+//      val sepToUse = next match {
+//        // last segment
+//        case None => filledSeparator
+//        // segments in the middle
+//        case Some(_) => sep
+//      }
+//
+//      List(fgcolor(contentFg), bgcolor(contentBg), content,
+//        sepBgColorStr, fgcolor(sepFgColor), sepToUse) mkString ""
+//    }
+//  }
 
   // Separators
   val filledSeparator = "\u2B80"
@@ -103,25 +103,24 @@ object PowerlineServer extends App {
       if (msg.startsWith(HOME))
         msg.replaceFirst(HOME, "~")
       else
-        msg.substring(1)  // remove leading "/"
+        msg.substring(1)  // remove the leading "/"
     val dirs = cwd.split("/").toIndexedSeq
 
     val (firsts, last) = (dirs.slice(0, dirs.length-1), dirs.last)
 
     val segments = firsts map {
       dir: String =>
-        Segment(" %s " format dir, Color.PATH_FG,
-          Color.PATH_BG, thinSeparator, Some(Color.SEPARATOR_FG))
+        NormalSegment(" %s " format dir, Color.PATH_FG,
+          Color.PATH_BG, thinSeparator, Color.SEPARATOR_FG)
     }
-    segments :+ Segment(" %s " format last, Color.PATH_FG,
-          Color.PATH_BG, filledSeparator, None)
+    segments :+ LastSegment(" %s " format last, Color.PATH_FG,
+          Color.PATH_BG)
   }
 
   def genRootIndicator() = {
-    IndexedSeq(Segment(ROOT_INDICATOR, Color.CMD_PASSED_FG,
-      Color.CMD_PASSED_BG, thinSeparator, None))
+    IndexedSeq(LastSegment(ROOT_INDICATOR, Color.CMD_PASSED_FG,
+      Color.CMD_PASSED_BG))
   }
-
 
   // Main
   try {

@@ -6,7 +6,7 @@ abstract class Segment {
   val contentFg: Int
   val contentBg: Int
 
-  def draw(): String
+  def draw(next: Option[Segment]): String
 }
 
 import PowerlineServer._
@@ -18,7 +18,7 @@ case class NormalSegment(content: String,
                          sepFg: Int)
   extends Segment {
 
-  def draw() = {
+  override def draw(next: Option[Segment]) = {
     List(fgcolor(contentFg), bgcolor(contentBg), content,
       fgcolor(sepFg), bgcolor(contentBg), sep) mkString ""
   }
@@ -26,16 +26,14 @@ case class NormalSegment(content: String,
 
 case class LastSegment(content: String,
                        contentFg: Int,
-                       contentBg: Int,
-                       next: Option[Segment])
+                       contentBg: Int)
   extends Segment {
 
-  val sepBgColorStr = next match {
-    case Some(seg) => bgcolor(seg.contentBg)
-    case None => RESET
-  }
-
-  def draw() = {
+  override def draw(next: Option[Segment]) = {
+    val sepBgColorStr = next match {
+      case Some(seg) => bgcolor(seg.contentBg)
+      case None => RESET
+    }
     List(fgcolor(contentFg), bgcolor(contentBg), content,
       fgcolor(contentBg), sepBgColorStr, filledSeparator) mkString ""
   }
