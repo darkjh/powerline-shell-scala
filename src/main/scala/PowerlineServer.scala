@@ -95,6 +95,19 @@ object PowerlineServer extends App {
     IndexedSeq(LastSegment(ROOT_INDICATOR, fg, bg))
   }
 
+  def genCVSSegment(msg: String) = {
+    val git = GitStatus(msg)
+    if (git.exist()) {
+      val (fg, bg) = git.isClean() match {
+        case true => (Color.REPO_CLEAN_FG, Color.REPO_CLEAN_BG)
+        case false => (Color.REPO_DIRTY_FG, Color.REPO_DIRTY_BG)
+      }
+      IndexedSeq(LastSegment(" %s " format git.currentBranch(), fg, bg))
+    } else {
+      IndexedSeq()
+    }
+  }
+
   // Main
   try {
     val server = new ServerSocket(18888)
@@ -113,7 +126,10 @@ object PowerlineServer extends App {
         case e: Exception => 0
       }
 
-      val output = draw(genCwdSegments(pwd) ++ genRootIndicator(retCode))
+      val output = draw(
+        genCwdSegments(pwd)
+          ++ genCVSSegment(pwd)
+          ++ genRootIndicator(retCode))
       out.print(output)
 
       in.close()
