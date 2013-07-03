@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <netdb.h>
 
@@ -35,7 +36,7 @@ char* prepare_msg(const char *env_var) {
 }
 
 int main(int argc, char **argv) {
-  int sockfd, portno, n;
+  int sockfd;
   struct sockaddr_in serveraddr;
   struct hostent *server;
   char buf[BUFSIZE];
@@ -67,14 +68,24 @@ int main(int argc, char **argv) {
   char* pwd_msg = prepare_msg(getenv(PWD));
   char* ret_msg = prepare_msg(argv[1]);
 
+  /* get current console window width */
+  struct winsize ws;
+  ioctl(0, TIOCGWINSZ, &ws);
+  char win_width[10];
+  sprintf(win_width, "%d", ws.ws_col);
+  char* win_width_msg = prepare_msg(win_width);
+
   /* write: send the messages to the server */
   if (write(sockfd, pwd_msg, strlen(pwd_msg)) < 0)
     error("ERROR writing to powerline server");
   if (write(sockfd, ret_msg, strlen(ret_msg)) < 0)
     error("ERROR writing to powerline server");
+  if (write(sockfd, win_width_msg, strlen(win_width_msg)) < 0)
+    error("ERROR writing to powerline server");
 
   free(pwd_msg);
   free(ret_msg);
+  free(win_width_msg);
 
   /* read: print the server's reply */
   bzero(buf, BUFSIZE);

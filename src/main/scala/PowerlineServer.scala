@@ -117,19 +117,18 @@ object PowerlineServer extends App {
       val out = new PrintStream(socket.getOutputStream)
 
       val pwd = in.readLine()
-      val ret = in.readLine()
-
-      println("Pwd: "+pwd + " Ret Code: " + ret)
-      val retCode = try {
-        ret.toInt
+      val ret = try {
+        in.readLine().toInt
       } catch {
         case e: Exception => 0
       }
+      val winSize = in.readLine().toInt
 
+      println("Pwd: "+pwd + ", Ret: " + ret + ", Size: " + winSize)
       val output = draw(
         genCwdSegments(pwd)
           ++ genCVSSegment(pwd)
-          ++ genRootIndicator(retCode))
+          ++ genRootIndicator(ret))
       out.print(output)
 
       in.close()
