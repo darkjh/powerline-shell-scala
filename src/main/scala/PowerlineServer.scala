@@ -33,6 +33,7 @@ object PowerlineServer extends App {
   // Separators
   val filledSeparator = "\u2B80"
   val thinSeparator = "\u2B81"
+  val ellipsis = "\u2026"
 
   // Bash prompt color escape string
   val LSQESCRSQ = "\\[\\e%s\\]"
@@ -66,24 +67,40 @@ object PowerlineServer extends App {
     sb.append(RESET)
   }
 
-  // TODO maxDepth
-  def genCwdSegments(msg: String) = {
+  def genCwdSegments(msg: String, maxLen: Int) = {
     val cwd =
       if (msg.startsWith(HOME))
         msg.replaceFirst(HOME, "~")
       else
         msg.substring(1)  // remove the leading "/"
     val dirs = cwd.split("/").toIndexedSeq
+    var len = dirs.foldLeft(0)((l, d) => l + d.length + 3)
+    val hasDrop = len > maxLen
 
     val (firsts, last) = (dirs.slice(0, dirs.length-1), dirs.last)
 
-    val segments = firsts map {
-      dir: String =>
-        NormalSegment(" %s " format dir, Color.PATH_FG,
-          Color.PATH_BG, thinSeparator, Color.SEPARATOR_FG)
+    val segments = {
+      val shortened = firsts.dropWhile {
+        dir: String =>
+          val drop = len > maxLen
+          len = len - dir.length - 3
+          drop
+      }
+      shortened map {
+        dir: String =>
+          NormalSegment(" %s " format dir, Color.PATH_FG,
+            Color.PATH_BG, thinSeparator, Color.SEPARATOR_FG)
+      }
     }
-    segments :+ LastSegment(" %s " format last, Color.PATH_FG,
-          Color.PATH_BG)
+
+    (if (hasDrop)
+      IndexedSeq(NormalSegment(" %s " format ellipsis,
+        Color.PATH_FG, Color.PATH_BG, thinSeparator, Color.SEPARATOR_FG))
+    else
+      IndexedSeq()) ++
+      segments :+
+      LastSegment(" %s " format last,
+        Color.PATH_FG, Color.PATH_BG)
   }
 
   def genRootIndicator(retCode: Int) = {
@@ -123,10 +140,11 @@ object PowerlineServer extends App {
         case e: Exception => 0
       }
       val winSize = in.readLine().toInt
+      val maxLen = ((winSize + HOME.length - 3) * 0.4f).toInt
 
       println("Pwd: "+pwd + ", Ret: " + ret + ", Size: " + winSize)
       val output = draw(
-        genCwdSegments(pwd)
+        genCwdSegments(pwd, maxLen)
           ++ genCVSSegment(pwd)
           ++ genRootIndicator(ret))
       out.print(output)
