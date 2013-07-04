@@ -8,7 +8,10 @@ case class GitStatus(path: String)
   extends CVSStatus {
 
   val git = try {
-    Some(Git.open(new File(path)))
+    path match {
+      case path if path == "/" => None  // TODO bug in JGit ???
+      case path => Some(Git.open(new File(path)))
+    }
   } catch {
     case e: Exception => None
   }

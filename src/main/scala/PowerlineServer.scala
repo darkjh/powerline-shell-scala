@@ -68,12 +68,15 @@ object PowerlineServer extends App {
   }
 
   def genCwdSegments(msg: String, maxLen: Int) = {
-    val cwd =
-      if (msg.startsWith(HOME))
-        msg.replaceFirst(HOME, "~")
-      else
-        msg.substring(1)  // remove the leading "/"
-    val dirs = cwd.split("/").toIndexedSeq
+    val dirs = msg match {
+      case msg if msg startsWith(HOME) =>
+        msg.replaceFirst(HOME, "~").split("/").toIndexedSeq
+      case "/" =>
+        IndexedSeq("/")
+      case msg =>
+        msg.substring(1).split("/").toIndexedSeq  // remove the leading "/"
+    }
+
     var len = dirs.foldLeft(0)((l, d) => l + d.length + 3)
     val hasDrop = len > maxLen
 
