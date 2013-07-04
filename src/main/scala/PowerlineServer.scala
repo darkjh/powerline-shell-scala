@@ -44,6 +44,7 @@ object PowerlineServer extends App {
 
   // Home dir
   val HOME = System.getenv("HOME")
+  val USER = System.getenv("USER")
 
 
   def color(prefix: String, code: Int) =
@@ -130,6 +131,10 @@ object PowerlineServer extends App {
     }
   }
 
+  val userSegment = IndexedSeq(
+    LastSegment(" %s " format USER, Color.REPO_DIRTY_FG, Color.USER_FG))
+
+
   // Main
   try {
     val server = new ServerSocket(18888)
@@ -150,7 +155,8 @@ object PowerlineServer extends App {
 
       println("Pwd: "+pwd + ", Ret: " + ret + ", Size: " + winSize)
       val output = draw(
-        generateCwdSegments(pwd, maxLen)
+        userSegment
+          ++ generateCwdSegments(pwd, maxLen)
           ++ generateCVSSegment(pwd)
           ++ generateRootIndicator(ret))
       out.print(output)
