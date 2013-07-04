@@ -8,19 +8,21 @@ object PowerlineServer extends App {
 
   /** ANSI color definitions */
   object Color {
-    val PATH_BG = 237  // dark grey
-    val PATH_FG = 250  // light grey
+    val PATH_BG = 238  // dark grey
+    val PATH_FG = 251  // light grey
     val CWD_FG = 254  // nearly-white grey
     val SEPARATOR_FG = 244
 
-    val REPO_CLEAN_BG = 148  // a light green color
+    val USER_FG = 27
+
+    val REPO_CLEAN_BG = 35 // 148  // a light green color
     val REPO_CLEAN_FG = 0  // black
-    val REPO_DIRTY_BG = 161  // pink/red
+    val REPO_DIRTY_BG = 160 // 161  // pink/red
     val REPO_DIRTY_FG = 15  // white
 
     val CMD_PASSED_BG = 236
     val CMD_PASSED_FG = 15
-    val CMD_FAILED_BG = 161
+    val CMD_FAILED_BG = 124 // 161
     val CMD_FAILED_FG = 15
 
     val SVN_CHANGES_BG = 148
