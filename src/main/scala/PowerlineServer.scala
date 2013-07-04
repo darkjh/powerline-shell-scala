@@ -67,8 +67,8 @@ object PowerlineServer extends App {
     sb.append(RESET)
   }
 
-  def genCwdSegments(msg: String, maxLen: Int) = {
-    val dirs = msg match {
+  def generateCwdSegments(path: String, maxLen: Int) = {
+    val dirs = path match {
       case msg if msg startsWith(HOME) =>
         msg.replaceFirst(HOME, "~").split("/").toIndexedSeq
       case "/" =>
@@ -106,7 +106,7 @@ object PowerlineServer extends App {
         Color.PATH_FG, Color.PATH_BG)
   }
 
-  def genRootIndicator(retCode: Int) = {
+  def generateRootIndicator(retCode: Int) = {
     val (fg, bg) = if (retCode != 0) {
       (Color.CMD_FAILED_FG, Color.CMD_FAILED_BG)
     } else {
@@ -115,8 +115,8 @@ object PowerlineServer extends App {
     IndexedSeq(LastSegment(ROOT_INDICATOR, fg, bg))
   }
 
-  def genCVSSegment(msg: String) = {
-    val git = GitStatus(msg)
+  def generateCVSSegment(path: String) = {
+    val git = GitStatus(path)
     if (git.exist()) {
       val (fg, bg) = git.isClean() match {
         case true => (Color.REPO_CLEAN_FG, Color.REPO_CLEAN_BG)
@@ -143,13 +143,14 @@ object PowerlineServer extends App {
         case e: Exception => 0
       }
       val winSize = in.readLine().toInt
+      // calculate max length for PWD segments
       val maxLen = ((winSize + HOME.length - 3) * 0.4f).toInt
 
       println("Pwd: "+pwd + ", Ret: " + ret + ", Size: " + winSize)
       val output = draw(
-        genCwdSegments(pwd, maxLen)
-          ++ genCVSSegment(pwd)
-          ++ genRootIndicator(ret))
+        generateCwdSegments(pwd, maxLen)
+          ++ generateCVSSegment(pwd)
+          ++ generateRootIndicator(ret))
       out.print(output)
 
       in.close()
