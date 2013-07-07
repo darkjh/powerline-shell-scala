@@ -18,3 +18,6 @@ libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "3.0.0.20130610
 
 // ScalaTest
 libraryDependencies += "org.scalatest" %% "scalatest" % "1.9.1" % "test"
+
+// Akuma
+libraryDependencies += "org.kohsuke" % "akuma" % "1.9"
