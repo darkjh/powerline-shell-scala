@@ -1,3 +1,4 @@
+import com.sun.akuma.Daemon
 import java.io.{InputStreamReader, BufferedReader, PrintStream, IOException}
 import java.net.{SocketException, ServerSocket}
 
@@ -134,40 +135,52 @@ object PowerlineServer extends App {
   val userSegment = IndexedSeq(
     LastSegment(" %s " format USER, Color.REPO_DIRTY_FG, Color.USER_FG))
 
+  def runPowerlineServer() {
+    try {
+      val server = new ServerSocket(18888)
+      while (true) {
+        val socket = server.accept()
+        val in = new BufferedReader(new InputStreamReader(socket.getInputStream))
+        val out = new PrintStream(socket.getOutputStream)
+
+        val pwd = in.readLine()
+        val ret = try {
+          in.readLine().toInt
+        } catch {
+          case e: Exception => 0
+        }
+        val winSize = in.readLine().toInt
+        // calculate max length for PWD segments
+        val maxLen = ((winSize + HOME.length - 3) * 0.4f).toInt
+
+        println("Pwd: "+pwd + ", Ret: " + ret + ", Size: " + winSize)
+        val output = draw(
+          userSegment
+            ++ generateCwdSegments(pwd, maxLen)
+            ++ generateCVSSegment(pwd)
+            ++ generateRootIndicator(ret))
+        out.print(output)
+
+        in.close()
+        out.close()
+        socket.close()
+      }
+    } catch {
+      case e: SocketException =>
+      case e: IOException =>
+        e.printStackTrace()
+    }
+  }
 
   // Main
-  try {
-    val server = new ServerSocket(18888)
-    while (true) {
-      val socket = server.accept()
-      val in = new BufferedReader(new InputStreamReader(socket.getInputStream))
-      val out = new PrintStream(socket.getOutputStream)
-
-      val pwd = in.readLine()
-      val ret = try {
-        in.readLine().toInt
-      } catch {
-        case e: Exception => 0
-      }
-      val winSize = in.readLine().toInt
-      // calculate max length for PWD segments
-      val maxLen = ((winSize + HOME.length - 3) * 0.4f).toInt
-
-      println("Pwd: "+pwd + ", Ret: " + ret + ", Size: " + winSize)
-      val output = draw(
-        userSegment
-          ++ generateCwdSegments(pwd, maxLen)
-          ++ generateCVSSegment(pwd)
-          ++ generateRootIndicator(ret))
-      out.print(output)
-
-      in.close()
-      out.close()
-      socket.close()
-    }
-  } catch {
-    case e: SocketException =>
-    case e: IOException =>
-      e.printStackTrace()
+  // Daemonize the powerline server
+  val daemon = new Daemon()
+  if (daemon.isDaemonized) {
+    daemon.init()
+  } else {
+    daemon.daemonize()
+    System.exit(0)
   }
+  // Run the server in background
+  runPowerlineServer()
 }
