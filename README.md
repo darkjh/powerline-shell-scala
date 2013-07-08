@@ -3,7 +3,7 @@ powerline-shell-scala
 
 A re-implementation of powerline-shell in Scala
 
-![powerline-shell-scala](http://imgur.com/9SVFfUw)
+![powerline-shell-scala](http://imgur.com/9SVFfUw.png)
 
 I was always using the powerling-shell created by [milkbikis](https://github.com/milkbikis) and I like it very much. But since it's a python script, sometimes it reponses slowly, maybe there's a way to make it fast but I decided to re-implement it using Scala, in a different structure.
 
