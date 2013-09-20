@@ -42,6 +42,18 @@ which will launch the server with maximum 50Mb of memory at startup.
 
 As the original one, powerline uses some special symbols that maybe not included in your font. Consult [this post](https://github.com/Lokaltog/vim-powerline/wiki/Patched-fonts) for patching your favorite font.
 
+### Terminus ###
+Patched terminus font is included in repo, under `font/terminus/`.
+
+Setup console fonts in `~/.Xresources` like below:
+
+```sh
+URxvt.font: xft:Terminus:pixelsize=14:antialias=false:hinting=false:autohint=false, xft:Terminus (TTF) for Powerline:pixelsize=16:antialias=true:hinting=true:autohint=true
+URxvt.boldFont: xft:Terminus:bold:pixelsize=14:antialias=false:hinting=false:autohint=false, xft:Terminus (TTF) for Powerline:bold:pixelsize=16:antialias=true:hinting=true:autohint=true
+```
+
+As you can see the patched fonts are used as secondary fonts only to provide the special symbols needed.
+
 ## Other implementations ##
 
 - [original vim version](https://github.com/Lokaltog/powerline)
