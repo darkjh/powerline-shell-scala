@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
   serveraddr.sin_port = htons(PORT);
 
   /* connect: create a connection with the server */
-  if (connect(sockfd, &serveraddr, sizeof(serveraddr)) < 0)
+  if (connect(sockfd, (struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0)
     error("ERROR connecting");
 
   /* get current pwd and return code */
